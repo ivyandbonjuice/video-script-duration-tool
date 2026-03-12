@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>视频脚本时长分析工具 v7.2</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  --bg: #f5f6f8;
+  --surface: #ffffff;
+  --surface2: #f0f2f5;
+  --border: #e2e5eb;
+  --border2: #d0d4de;
+  --accent: #8b5cf6;
+  --accent-light: #f3e8ff;
+  --accent-dark: #7c3aed;
+  --success: #16a34a;
+  --success-light: #f0fdf4;
+  --warn: #d97706;
+  --warn-light: #fffbeb;
+  --danger: #dc2626;
+  --danger-light: #fef2f2;
+  --info: #0ea5e9;
+  --info-light: #f0f9ff;
+  --text: #111827;
+  --text2: #374151;
+  --muted: #6b7280;
+  --muted2: #9ca3af;
+  --sans: 'Inter', -apple-system, sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 11px;
+  padding: 8px;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Card */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 6px 8px;
+  margin-bottom: 6px;
+}
+
+.card-title {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.card-title .icon {
+  font-size: 11px;
+}
+
+/* Input Row */
+.input-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.input-group {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.input-group label {
+  font-size: 9px;
+  font-weight: 500;
+  color: var(--text2);
+  white-space: nowrap;
+}
+
+.input-group input,
+.input-group select {
+  padding: 3px 6px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  font-size: 10px;
+  background: var(--surface);
+  color: var(--text);
+  outline: none;
+  height: 20px;
+}
+
+.input-group input:focus,
+.input-group select:focus {
+  border-color: var(--accent);
+}
+
+/* 紧凑输入框 */
+.compact-input {
+  width: 60px;
+  font-family: var(--mono);
+  text-align: center;
+}
+
+.wide-input {
+  width: 90px;
+}
+
+/* Button */
+.btn {
+  padding: 3px 8px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  font-size: 9px;
+  font-weight: 500;
+  cursor: pointer;
+  background: var(--surface2);
+  color: var(--text);
+  transition: all 0.15s;
+  height: 20px;
+}
+
+.btn:hover {
+  border-color: var(--accent);
+  background: var(--accent-light);
+  color: var(--accent);
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+
+.btn-primary:hover {
+  background: var(--accent-dark);
+}
+
+.copy-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--accent);
+  font-size: 8px;
+  padding: 1px 3px;
+  border-radius: 2px;
+  margin-left: 4px;
+}
+
+.copy-btn:hover {
+  background: var(--accent-light);
+}
+
+/* Scene Input Group */
+.scene-input-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  align-items: center;
+}
+
+.scene-input {
+  width: 80px;
+  height: 18px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 0 3px;
+  font-size: 9px;
+  font-family: var(--mono);
+  color: var(--text);
+  background: var(--surface);
+  outline: none;
+}
+
+.scene-input:focus {
+  border-color: var(--accent);
+}
+
+.scene-input::placeholder {
+  color: var(--muted2);
+  font-size: 8px;
+}
+
+.add-scene-btn {
+  width: 18px;
+  height: 18px;
+  border: 1px dashed var(--border);
+  background: var(--surface);
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 11px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.add-scene-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.remove-scene-btn {
+  width: 16px;
+  height: 18px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 10px;
+  color: var(--danger);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.remove-scene-btn:hover {
+  background: var(--danger-light);
+  border-color: var(--danger);
+}
+
+/* Result Section */
+.result-section {
+  background: var(--surface2);
+  border-radius: 3px;
+  padding: 6px;
+  margin-top: 6px;
+}
+
+.result-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 3px;
+  padding-bottom: 3px;
+  border-bottom: 1px solid var(--border);
+}
+
+.result-row:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.result-label {
+  font-size: 9px;
+  font-weight: 500;
+  color: var(--text2);
+  min-width: 60px;
+}
+
+.result-value {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text);
+  font-family: var(--mono);
+}
+
+.result-value.ok { color: var(--success); }
+.result-value.warn { color: var(--warn); }
+.result-value.danger { color: var(--danger); }
+
+/* Char Range */
+.char-range {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 6px;
+  background: var(--accent-light);
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--accent-dark);
+}
+
+.char-range .min-max {
+  font-size: 8px;
+  color: var(--muted);
+  font-weight: 400;
+}
+
+/* Match Badge */
+.match-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 9px;
+  font-weight: 600;
+}
+
+.match-badge.available {
+  background: var(--success-light);
+  color: var(--success);
+}
+
+.match-badge.shortage {
+  background: var(--warn-light);
+  color: var(--warn);
+}
+
+/* Two Columns Layout */
+.two-cols {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+  min-height: 0;
+}
+
+.col {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.col .card {
+  flex: 1;
+  margin-bottom: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.col .card > * {
+  flex-shrink: 0;
+}
+
+.col .card > .result-section {
+  flex-shrink: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* Hint - Tooltip style */
+.hint-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.hint-icon {
+  cursor: help;
+  color: var(--muted);
+  font-size: 10px;
+  margin-left: 4px;
+}
+
+.hint-icon:hover {
+  color: var(--accent);
+}
+
+.hint-tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--text);
+  color: white;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 9px;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.15s;
+  z-index: 100;
+  pointer-events: none;
+  margin-bottom: 4px;
+}
+
+.hint-icon:hover + .hint-tooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
+.hint-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 4px solid transparent;
+  border-top-color: var(--text);
+}
+
+/* Mode Selector */
+.mode-selector {
+  display: flex;
+  gap: 4px;
+}
+
+.mode-btn {
+  flex: 1;
+  padding: 3px 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  color: var(--text2);
+  font-size: 9px;
+  cursor: pointer;
+  transition: all 0.15s;
+  height: 20px;
+}
+
+.mode-btn:hover {
+  border-color: var(--accent);
+}
+
+.mode-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--text);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 500;
+  z-index: 1000;
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+}
+
+.toast.visible {
+  opacity: 1;
+}
+
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <!-- 脚本时长输入 -->
+  <div class="card">
+    <div class="input-row" style="margin-bottom: 0;">
+      <div class="input-group">
+        <label>脚本时长：</label>
+        <input type="number" id="mainDuration" class="compact-input" value="30" min="1">
+      </div>
+      <div class="input-group">
+        <label>或：</label>
+        <input type="text" id="timeFormatInput" class="wide-input" placeholder="1:30 或 01:16-01:21">
+      </div>
+      <button class="btn" onclick="parseTimeFormat()">解析</button>
+      <span class="hint-wrapper">
+        <span class="hint-icon">?</span>
+        <span class="hint-tooltip">支持单一时间(30, 1:30, 1:20:30)或时间区间(01:16-01:21, 01:36:16-01:36:21)</span>
+      </span>
+    </div>
+  </div>
+
+  <!-- 两列布局 -->
+  <div class="two-cols">
+    <!-- 左列：计算理想字数 -->
+    <div class="col">
+      <div class="card">
+        <div class="card-title">
+          <span class="icon">✍️</span>
+          计算理想字数
+        </div>
+        <div class="input-row">
+          <div class="input-group">
+            <label>语速：</label>
+            <input type="number" id="speedInput" class="compact-input" value="200" min="100" max="400" step="10">
+          </div>
+          <div class="input-group">
+            <select id="speedSelect">
+              <option value="">选择</option>
+              <option value="180">180(慢)</option>
+              <option value="200" selected>200(标准)</option>
+              <option value="220">220(中快)</option>
+              <option value="240">240(快)</option>
+              <option value="260">260(很快)</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" onclick="calculateIdealChars()">计算</button>
+        </div>
+        <div class="input-row">
+          <div class="input-group" style="flex: 1;">
+            <label>音画模式：</label>
+            <div class="mode-selector" style="flex: 1;">
+              <button class="mode-btn active" data-mode="voiceover">仅解读</button>
+              <button class="mode-btn" data-mode="original">混合模式</button>
+            </div>
+            <span class="hint-wrapper">
+              <span class="hint-icon">?</span>
+              <span class="hint-tooltip">仅解读: 字数=时长×语速/60, 区间±10% | 混合模式: 字数=时长×语速/60×0.8, 区间±20%</span>
+            </span>
+          </div>
+        </div>
+        <div class="result-section" id="idealResult">
+          <div class="result-row">
+            <span class="result-label">脚本时长：</span>
+            <span class="result-value" id="displayDuration">30秒</span>
+          </div>
+          <div class="result-row">
+            <span class="result-label">语速：</span>
+            <span class="result-value" id="displaySpeed">200 字/分</span>
+          </div>
+          <div class="result-row">
+            <span class="result-label">模式：</span>
+            <span class="result-value" id="displayMode">纯画外音</span>
+          </div>
+          <div class="result-row">
+            <span class="result-label">理想字数：</span>
+            <span class="char-range" id="idealCharRange"><b>100</b> <span class="min-max">(90-110)</span></span>
+            <button class="copy-btn" onclick="copyResult('idealCharRange')">复制</button>
+          </div>
+          <div class="result-row">
+            <span class="result-label">字数区间：</span>
+            <span class="result-value" id="charRangeDetail">90 ~ 110 字</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右列：计算画面匹配 -->
+    <div class="col">
+      <div class="card">
+        <div class="card-title">
+          <span class="icon">🎬</span>
+          计算画面匹配
+        </div>
+        <div class="input-row">
+          <div class="input-group">
+            <label>脚本时长：</label>
+            <span class="result-value" id="sceneDurationDisplay" style="color: var(--accent);">30秒</span>
+          </div>
+          <button class="btn btn-primary" onclick="calculateSceneMatch()">计算</button>
+        </div>
+        <div class="input-row">
+          <div class="input-group" style="flex: 1; align-items: flex-start;">
+            <label style="margin-top: 1px;">Must：</label>
+            <div class="scene-input-group" id="mustSceneInputs">
+              <input type="text" class="scene-input" placeholder="0:10-0:25">
+            </div>
+            <span class="hint-wrapper">
+              <span class="hint-icon">?</span>
+              <span class="hint-tooltip">MM:SS-MM:SS 或 HH:MM:SS-HH:MM:SS</span>
+            </span>
+          </div>
+          <button class="add-scene-btn" onclick="addSceneInput('mustSceneInputs')">+</button>
+        </div>
+        <div class="input-row">
+          <div class="input-group" style="flex: 1; align-items: flex-start;">
+            <label style="margin-top: 1px;">Maybe：</label>
+            <div class="scene-input-group" id="maybeSceneInputs">
+              <input type="text" class="scene-input" placeholder="0:30-0:45">
+            </div>
+            <span class="hint-wrapper">
+              <span class="hint-icon">?</span>
+              <span class="hint-tooltip">同上格式</span>
+            </span>
+          </div>
+          <button class="add-scene-btn" onclick="addSceneInput('maybeSceneInputs')">+</button>
+        </div>
+        <div class="result-section" id="sceneResult">
+          <div class="result-row">
+            <span class="result-label">Must：</span>
+            <span class="result-value" id="mustSceneDuration">0秒</span>
+          </div>
+          <div class="result-row">
+            <span class="result-label">Maybe：</span>
+            <span class="result-value" id="maybeSceneDuration">0秒</span>
+          </div>
+          <div class="result-row">
+            <span class="result-label">总时长：</span>
+            <span class="result-value" id="totalSceneDuration">0秒</span>
+          </div>
+          <div class="result-row">
+            <span class="result-label">画面匹配：</span>
+            <span class="match-badge shortage" id="sceneMatchBadge">⚠️ 缺30秒</span>
+            <button class="copy-btn" onclick="copyResult('sceneMatchBadge')">复制</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">已复制到剪贴板</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// 工具函数
+// ═══════════════════════════════════════════════════════════
+
+// 将时间字符串转换为秒数
+function parseTimeToSeconds(timeStr) {
+  if (!timeStr) return 0;
+  timeStr = String(timeStr).trim();
+  if (/^\d+$/.test(timeStr)) {
+    return parseInt(timeStr, 10);
+  }
+  const parts = timeStr.split(':');
+  if (parts.length === 2) {
+    const mins = parseInt(parts[0], 10) || 0;
+    const secs = parseInt(parts[1], 10) || 0;
+    return mins * 60 + secs;
+  } else if (parts.length === 3) {
+    const hours = parseInt(parts[0], 10) || 0;
+    const mins = parseInt(parts[1], 10) || 0;
+    const secs = parseInt(parts[2], 10) || 0;
+    return hours * 3600 + mins * 60 + secs;
+  }
+  return 0;
+}
+
+function formatSeconds(seconds) {
+  if (seconds < 60) return `${seconds}秒`;
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return secs > 0 ? `${mins}分${secs}秒` : `${mins}分`;
+}
+
+function parseTimeRange(rangeStr) {
+  if (!rangeStr) return 0;
+  rangeStr = rangeStr.trim();
+  if (rangeStr.includes('-')) {
+    const parts = rangeStr.split('-');
+    if (parts.length === 2) {
+      const start = parseTimeToSeconds(parts[0]);
+      const end = parseTimeToSeconds(parts[1]);
+      return Math.max(0, end - start);
+    }
+  }
+  return parseTimeToSeconds(rangeStr);
+}
+
+function getGroupTotalDuration(groupId) {
+  const container = document.getElementById(groupId);
+  const inputs = container.querySelectorAll('.scene-input');
+  let total = 0;
+  inputs.forEach(input => {
+    const value = input.value.trim();
+    if (value) {
+      total += parseTimeRange(value);
+    }
+  });
+  return total;
+}
+
+function addSceneInput(groupId) {
+  const container = document.getElementById(groupId);
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.className = 'scene-input';
+  input.placeholder = '0:10-0:25';
+
+  const removeBtn = document.createElement('button');
+  removeBtn.className = 'remove-scene-btn';
+  removeBtn.textContent = '×';
+  removeBtn.onclick = function() {
+    if (input.parentNode) container.removeChild(input);
+    if (removeBtn.parentNode === container) container.removeChild(removeBtn);
+  };
+
+  container.appendChild(input);
+  container.appendChild(removeBtn);
+}
+
+function copyResult(elementId) {
+  const element = document.getElementById(elementId);
+  const text = element.textContent || element.innerText;
+  navigator.clipboard.writeText(text).then(() => showToast('已复制')).catch(() => showToast('复制失败'));
+}
+
+function showToast(message) {
+  const toast = document.getElementById('toast');
+  toast.textContent = message;
+  toast.classList.add('visible');
+  setTimeout(() => toast.classList.remove('visible'), 1500);
+}
+
+function getScriptDuration() {
+  return parseInt(document.getElementById('mainDuration').value) || 0;
+}
+
+// 音画配合模式
+let selectedMode = 'voiceover'; // 'voiceover' | 'original'
+
+// 模式选择
+document.querySelectorAll('.mode-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    selectedMode = this.dataset.mode;
+    calculateIdealChars();
+  });
+});
+
+// ═══════════════════════════════════════════════════════════
+// 脚本时长联动
+// ═══════════════════════════════════════════════════════════
+
+function parseTimeFormat() {
+  const timeStr = document.getElementById('timeFormatInput').value.trim();
+  if (!timeStr) return;
+
+  let seconds = 0;
+  if (timeStr.includes('-')) {
+    seconds = parseTimeRange(timeStr);
+  } else {
+    seconds = parseTimeToSeconds(timeStr);
+  }
+
+  if (seconds > 0) {
+    document.getElementById('mainDuration').value = seconds;
+    updateDurationDisplays(seconds);
+    calculateIdealChars();
+    calculateSceneMatch();
+    showToast(`已解析: ${formatSeconds(seconds)}`);
+  } else {
+    showToast('时间格式无效');
+  }
+}
+
+function updateDurationDisplays(seconds) {
+  const formatted = formatSeconds(seconds);
+  document.getElementById('displayDuration').textContent = formatted;
+  document.getElementById('sceneDurationDisplay').textContent = formatted;
+}
+
+document.getElementById('mainDuration').addEventListener('input', function() {
+  const seconds = parseInt(this.value) || 0;
+  updateDurationDisplays(seconds);
+  calculateIdealChars();
+  calculateSceneMatch();
+});
+
+document.getElementById('timeFormatInput').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') {
+    parseTimeFormat();
+  }
+});
+
+// ═══════════════════════════════════════════════════════════
+// 理想字数计算
+// ═══════════════════════════════════════════════════════════
+
+document.getElementById('speedSelect').addEventListener('change', function() {
+  if (this.value) document.getElementById('speedInput').value = this.value;
+  calculateIdealChars();
+});
+
+function calculateIdealChars() {
+  const speed = parseInt(document.getElementById('speedInput').value) || 200;
+  const duration = getScriptDuration();
+
+  if (duration <= 0) {
+    document.getElementById('idealCharRange').innerHTML = '—';
+    document.getElementById('charRangeDetail').textContent = '—';
+    return;
+  }
+
+  // 计算字数范围（根据模式）
+  const baseChars = Math.round(duration * speed / 60);
+  let idealChars, minChars, maxChars, modeText;
+
+  if (selectedMode === 'voiceover') {
+    // 仅解读模式: 理想字数 = 脚本时长 × (语速/60)
+    // 字数区间 = 脚本时长 × (语速/60) × 0.9 ～ 脚本时长 × (语速/60) × 1.1
+    idealChars = baseChars;
+    minChars = Math.round(baseChars * 0.9);
+    maxChars = Math.round(baseChars * 1.1);
+    modeText = '仅解读';
+  } else {
+    // 混合模式: 理想字数 = (脚本时长 × (语速/60)) × 0.8
+    // 字数区间 = 脚本时长 × (语速/60) × 0.72 ～ 脚本时长 × (语速/60) × 0.88
+    idealChars = Math.round(baseChars * 0.8);
+    minChars = Math.round(baseChars * 0.72);
+    maxChars = Math.round(baseChars * 0.88);
+    modeText = '混合模式';
+  }
+
+  document.getElementById('displaySpeed').textContent = `${speed} 字/分`;
+  document.getElementById('displayMode').textContent = modeText;
+  document.getElementById('idealCharRange').innerHTML = `<b>${idealChars}</b> <span class="min-max">(${minChars}-${maxChars})</span>`;
+  document.getElementById('charRangeDetail').textContent = `${minChars} ~ ${maxChars} 字`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// 画面匹配计算
+// ═══════════════════════════════════════════════════════════
+
+function calculateSceneMatch() {
+  const scriptDuration = getScriptDuration();
+  const mustDuration = getGroupTotalDuration('mustSceneInputs');
+  const maybeDuration = getGroupTotalDuration('maybeSceneInputs');
+  const totalDuration = mustDuration + maybeDuration;
+
+  document.getElementById('mustSceneDuration').textContent = formatSeconds(mustDuration);
+  document.getElementById('maybeSceneDuration').textContent = formatSeconds(maybeDuration);
+  document.getElementById('totalSceneDuration').textContent = formatSeconds(totalDuration);
+
+  const matchBadge = document.getElementById('sceneMatchBadge');
+  if (totalDuration >= scriptDuration) {
+    matchBadge.className = 'match-badge available';
+    matchBadge.textContent = '✅ 画面匹配';
+  } else {
+    const shortage = scriptDuration - totalDuration;
+    matchBadge.className = 'match-badge shortage';
+    matchBadge.textContent = `⚠️ 缺${shortage}秒`;
+  }
+}
+
+// 初始化
+calculateIdealChars();
+calculateSceneMatch();
+</script>
+</body>
+</html>
